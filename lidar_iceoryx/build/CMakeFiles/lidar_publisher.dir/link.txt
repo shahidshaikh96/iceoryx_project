@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/lidar_publisher.dir/src/lidar_publisher.cpp.o -o lidar_publisher  /home/shahid/iceoryx_project/iceoryx_install/lib/libiceoryx_posh.a /home/shahid/iceoryx_project/iceoryx_install/lib/libiceoryx_hoofs.a /home/shahid/iceoryx_project/iceoryx_install/lib/libiceoryx_platform.a -latomic -lpthread -lacl -lrt 

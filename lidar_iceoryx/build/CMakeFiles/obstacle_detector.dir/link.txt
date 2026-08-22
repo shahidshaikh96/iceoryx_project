@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/obstacle_detector.dir/src/obstacle_detector.cpp.o -o obstacle_detector  /home/shahid/iceoryx_project/iceoryx_install/lib/libiceoryx_posh.a /home/shahid/iceoryx_project/iceoryx_install/lib/libiceoryx_hoofs.a /home/shahid/iceoryx_project/iceoryx_install/lib/libiceoryx_platform.a -latomic -lpthread -lacl -lrt 
