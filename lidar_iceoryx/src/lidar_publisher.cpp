@@ -1,24 +1,13 @@
 #include "iceoryx_posh/popo/publisher.hpp"
 #include "iceoryx_posh/runtime/posh_runtime.hpp"
 
+#include "lidar_data.hpp"
+
 #include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <thread>
 
-struct Point
-{
-    float x;
-    float y;
-    float z;
-};
-
-struct LidarScan
-{
-    static constexpr uint32_t POINT_COUNT = 100;
-
-    Point points[POINT_COUNT];
-};
 
 int main()
 {

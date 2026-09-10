@@ -1,74 +1,60 @@
 #include "iceoryx_posh/popo/subscriber.hpp"
 #include "iceoryx_posh/runtime/posh_runtime.hpp"
-#include "iox/signal_watcher.hpp"
 
-#include <chrono>
+#include "lidar_data.hpp"
+
 #include <cmath>
 #include <cstdint>
 #include <iostream>
-#include <limits>
-#include <thread>
-
-struct Point
-{
-    float x;
-    float y;
-    float z;
-};
-
-struct LidarScan
-{
-    static constexpr uint32_t POINT_COUNT = 100;
-
-    Point points[POINT_COUNT];
-};
 
 int main()
 {
     // Register this process with iceoryx
     iox::runtime::PoshRuntime::initRuntime("ObstacleDetector");
 
-    // Subscribe to the LiDAR point cloud
-    iox::popo::Subscriber<LidarScan> subscriber({"Lidar", "Sensor", "PointCloud"});
+    // Create subscriber
+    iox::popo::Subscriber<LidarScan> subscriber(
+        {"Lidar", "Sensor", "PointCloud"});
 
     std::cout << "Obstacle detector started." << std::endl;
 
-    while (!iox::hasTerminationRequested())
+    while (true)
     {
-        subscriber
-            .take()
-            .and_then([](auto& sample) {
-                const LidarScan& scan = *sample;
+        // Try to receive a LiDAR scan
+        auto sample = subscriber.take();
 
-                // Find the closest point to the sensor
-                float closestDistance = std::numeric_limits<float>::max();
-                for (uint32_t i = 0; i < LidarScan::POINT_COUNT; ++i)
-                {
-                    const Point& p = scan.points[i];
-                    float distance = std::sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
-                    if (distance < closestDistance)
-                    {
-                        closestDistance = distance;
-                    }
-                }
+        if (sample.has_value())
+        {
+            float nearest_distance = 100000.0f;
 
-                if (closestDistance < 1.0F)
-                {
-                    std::cout << "WARNING: obstacle at " << closestDistance << " m!" << std::endl;
-                }
-                else
-                {
-                    std::cout << "Received scan, closest point at " << closestDistance << " m" << std::endl;
-                }
-            })
-            .or_else([](auto& result) {
-                if (result != iox::popo::ChunkReceiveResult::NO_CHUNK_AVAILABLE)
-                {
-                    std::cout << "Error receiving chunk." << std::endl;
-                }
-            });
+            // Check every point
+            for (uint32_t i = 0; i < LidarScan::POINT_COUNT; ++i)
+            {
+                const auto& point = sample->points[i];
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                // Distance from LiDAR origin
+                float distance = std::sqrt(
+                    point.x * point.x +
+                    point.y * point.y +
+                    point.z * point.z);
+
+                if (distance < nearest_distance)
+                {
+                    nearest_distance = distance;
+                }
+            }
+
+            std::cout << "Received "
+                      << LidarScan::POINT_COUNT
+                      << " points | "
+                      << "Nearest obstacle: "
+                      << nearest_distance
+                      << " m"
+                      << std::endl;
+
+            // Return the sample to iceoryx
+            subscriber.release(sample);
+        }
     }
 
     return 0;
